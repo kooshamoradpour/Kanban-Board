@@ -1,30 +1,54 @@
-import { JwtPayload, jwtDecode } from 'jwt-decode';
+import { JwtPayload, jwtDecode } from "jwt-decode";
 
 class AuthService {
-  getProfile() {
-    // TODO: return the decoded token
+  private tokenKey = "auth_token"; // Key for localStorage
+
+  // Get the decoded token (profile information)
+  getProfile(): JwtPayload | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      return jwtDecode<JwtPayload>(token);
+    } catch (error) {
+      console.error("Invalid token", error);
+      return null;
+    }
   }
 
-  loggedIn() {
-    // TODO: return a value that indicates if the user is logged in
-  }
-  
-  isTokenExpired(token: string) {
-    // TODO: return a value that indicates if the token is expired
+  // Check if user is logged in (token exists and is valid)
+  loggedIn(): boolean {
+    const token = this.getToken();
+    return !!token && !this.isTokenExpired(token);
   }
 
-  getToken(): string {
-    // TODO: return the token
+  // Check if token is expired
+  isTokenExpired(token: string): boolean {
+    try {
+      const decoded = jwtDecode<JwtPayload & { exp?: number }>(token);
+      if (!decoded.exp) return false; // If no expiration, assume valid
+
+      return decoded.exp * 1000 < Date.now(); // Convert to milliseconds
+    } catch (error) {
+      return true; // If error occurs, assume token is invalid/expired
+    }
   }
 
+  // Get token from localStorage
+  getToken(): string | null {
+    return localStorage.getItem(this.tokenKey);
+  }
+
+  // Store token and redirect to homepage
   login(idToken: string) {
-    // TODO: set the token to localStorage
-    // TODO: redirect to the home page
+    localStorage.setItem(this.tokenKey, idToken);
+    window.location.assign("/"); // Redirect to homepage
   }
 
+  // Remove token and redirect to login
   logout() {
-    // TODO: remove the token from localStorage
-    // TODO: redirect to the login page
+    localStorage.removeItem(this.tokenKey);
+    window.location.assign("/login"); // Redirect to login page
   }
 }
 

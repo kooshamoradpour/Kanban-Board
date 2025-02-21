@@ -10,6 +10,7 @@ interface UserAttributes {
 interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
+  [x: string]: any;
   public id!: number;
   public username!: string;
   public password!: string;
